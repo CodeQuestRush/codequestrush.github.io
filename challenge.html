@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="challenge_style.css">
-    <script type="text/javascript"
-        src="https://cdn.jsdelivr.net/npm/brython@3.12.4/brython.min.js">
-    </script>
     <title>Challenge</title>
 </head>
-<body onload="brython()">
+<body>
     <div class="nav_list">
-        <a href="main.html">Home</a>
+        <a href="index.html">Home</a>
         <a href="problems.html">Problems</a>
     </div>
 
@@ -142,40 +139,6 @@
                 }
                 `
                 eval(givenCode);
-            } else if (progLang == "Python3") {
-                let execScript = `
-from browser import document
-output = ""
-def test_code():
-    global output
-    answers = []
-`
-                for (let i = 0; i < s.length; i++) {
-                    let current = s[i].split("_");
-                    let testCase = current[0];
-                    let expected = current[1];
-
-                    let t = `
-    answers.append(${testCase} == ${expected}) # expected ans: ${expected}
-`
-                    execScript += t;
-                }
-
-                execScript += `
-    j = 1
-    document["result"].text = ""
-    for a in answers:
-        if a:
-            output += f"Test case {j}: passed\\n"
-        else:
-            output += f"Test case {j}: failed\\n"
-        j+=1
-    document["result"].text = output
-
-test_code()
-`
-                // Run the generated script with Brython
-                __BRYTHON__.run_script(execScript)
             }
         }
 
