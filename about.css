@@ -19,14 +19,16 @@ body {
     font-size: 17px;
 }
 
-table {
-    border-collapse: collapse;
-    border-color: inherit;
+header {
+    color: white;
 }
-  
-th, td {
-    border: 1px solid #dddddd;
-    text-align: left;
-    padding: 8px;
-    width: 400px;
+
+section {
+    border: 2px solid azure;
+    background-color: azure;
+    border-radius: 20px;
+    color: black;
+    margin-top: 2%;
+    margin-left: 20%;
+    margin-right: 20%;
 }
