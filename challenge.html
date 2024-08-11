@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="challenge_style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/brython/3.9.5/brython.min.js"></script>
     <title>Challenge</title>
 </head>
-<body>
+<body onload="brython()">
     <div class="nav_list">
-        <a href="index.html">Home</a>
+        <a href="index.html"><img src="images/logo.png" width="90" height="36"></a>
         <a href="problems.html">Problems</a>
     </div>
 
@@ -29,7 +30,7 @@
             <button id="selectedLang" class="selectedLang">JavaScript</button>
             <div class="dropdown-content">
                 <a href="#" onclick="changeLang('JavaScript')">JavaScript</a>
-                <!-- <a href="#" onclick="changeLang('Python3')">Python3</a> -->
+                <a href="#" onclick="changeLang('Python3')">Python3</a>
             </div>
         </div>
         <br>
@@ -45,9 +46,28 @@
 
     <script type="text/javascript">
         // get the chosen problem
-        const params = new URLSearchParams(window.location.search);
-        const chosen = params.get('chosen');
-        const solutions = params.get('solutions');
+        let params = new URLSearchParams(window.location.search);
+        let chosen = params.get('chosen');
+        let solutions;
+
+        if (chosen === "random") {
+            // ENSURE THIS IS CORRECTLY UPDATED IN `problems.html` AS WELL. //
+            let allProblems = {
+                // key: "title||desc||difficulty||func name"
+                // value: list of test cases and their expected answers
+                "Split This String!||Create a function that takes in a string s, and returns that string split into a list.||Easy||splitting": "splitting('hello world')_['hello', 'world']|splitting('this is some text')_['this', 'is', 'some', 'text']",
+                "Area of a Triangle||Write a function that takes the base and height of a triangle and return its area.||Easy||triArea": "triArea(3, 2)_3|triArea(7, 4)_14|triArea(10, 10)_50",
+                "Smallest and Biggest Numbers||Create a function that takes an array of numbers and return both the minimum and maximum numbers, in that order.||Easy||minMax": "minMax([1, 2, 3, 4, 5])_[1, 5]|minMax([2334454, 5])_[5, 2334454]|minMax([1])_[1, 1]"
+            };
+
+            let allKeys = Object.keys(allProblems);
+            let idx = Math.floor(Math.random() * allKeys.length);
+            chosen = allKeys[idx];
+            solutions = allProblems[chosen];
+
+        } else {
+            solutions = params.get('solutions');
+        }
 
         // default the language used to JavaScript
         let progLang = "JavaScript";
@@ -110,7 +130,7 @@
 
             if (progLang == "JavaScript") {
                 givenCode += `
-                let answers = [];
+let answers = [];
             
             `
                 for (let i = 0; i < s.length; i++) {
@@ -119,26 +139,91 @@
                     let expected = current[1];
 
                     let t = `
-                    answers[${i}] = (${testCase} == ${expected}) // expected ans: ${expected}
+try {
+    console.log(${testCase});
+    answers[${i}] = (${testCase} == ${expected}); // expected ans: ${expected}
+} catch (e) {
+    answers[${i}] = [false, e];
+}
                     `
                     givenCode += t;
                 }
 
                 givenCode += `
-                j = 1;
-                document.getElementById("result").innerText = "";
-                for (let a in answers) {
-                    if (a) {
-                        document.getElementById("result").innerText += \`
-                        Test case \${j}: passed\`;
-                    } else {
-                        document.getElementById("result").innerText += \`
-                        Test case \${j}: failed\`;
-                    }
-                    j+=1
-                }
+document.getElementById("result").innerText = "";
+for (let i = 0; i < answers.length; i++) {
+    if (answers[i] === true) {
+        document.getElementById("result").innerText += \`
+        Test case \${i+1}: Passed\`;
+        document.getElementById("result").style.color = "green";
+    } else if (answers[i] === false) {
+        document.getElementById("result").innerText += \`
+        Test case \${i+1}: Failed\`;
+        document.getElementById("result").style.color = "red";
+    } else {
+        document.getElementById("result").innerText += \`
+        Test case \${i+1}: Error: \${answers[i][1]} \`;
+        document.getElementById("result").style.color = "red";
+    }
+}
                 `
-                eval(givenCode);
+
+                window.onerror = function(e) {
+                    document.getElementById("result").innerText = "Error: Did you forget a closing curly bracket '{}' to close your function?";
+                    document.getElementById("result").style.color = "red";
+                    return;
+                }
+
+                let testScript = document.createElement("script");
+                testScript.type = "text/javascript";
+                testScript.textContent = givenCode;
+                document.body.appendChild(testScript);
+
+                // eval(givenCode);
+            } else if (progLang == "Python3") {
+                givenCode += `
+from browser import document
+answers = []
+            `
+                for (let i = 0; i < s.length; i++) {
+                    let current = s[i].split("_");
+                    let testCase = current[0];
+                    let expected = current[1];
+
+                    let t = `
+try:
+    print(${testCase});
+    answers[${i}] = (${testCase} == ${expected})
+except Exception as e:
+    answers[${i}] = [false, e]
+                    `
+                    givenCode += t;
+                }
+
+                givenCode += `
+document.getElementById("result").innerText = ""
+for i in range(len(answers)):
+    if answers[i]:
+        document["result"].textContent += f"Test case {i+1}: Passed";
+        document["result"].style.color = "green"
+    elif not answers[i]:
+        document["result"].textContent += f"Test case {i+1}: Failed";
+        document["result"].style.color = "red"
+    else:
+        document["result"].textContent += f"Test case {i+1}: Error: {answers[i][1]}";
+        document["result"].style.color = "red"
+                `
+
+                window.onerror = function(e) {
+                    document.getElementById("result").innerText = "Error: Did you forget a closing curly bracket '{}' to close your function?";
+                    document.getElementById("result").style.color = "red";
+                    return;
+                }
+
+                let testScript = document.createElement("script");
+                testScript.type = "text/python";
+                testScript.textContent = givenCode;
+                document.body.appendChild(testScript);
             }
         }
 
